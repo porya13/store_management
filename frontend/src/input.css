@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import './pages/home.css';
+
+/* Mobile-first responsive design */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+body {
+    background: linear-gradient(
+        135deg,
+        #f9f3eb 0%,
+        #e9dcc5 25%,
+        #d1b49f 50%,
+        #b0937c 75%,
+        #7a4a32 100%
+      );
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #2d1e1e;
+      padding-bottom: 80px; /* Space for bottom navigation */
+}
+
+
+
+/* Mobile-first container */
+.containerr{
+    @apply w-full px-4 mx-auto min-h-screen;
+}
+
+@media (min-width: 640px) {
+  .containerr {
+    @apply w-[80%] px-6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .containerr {
+    @apply w-[85%] px-8;
+  }
+}
+
+/* Mobile-first header */
+.header{
+    @apply fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-neutral-400/30 border-b border-white/40 shadow-md w-full mx-0 my-0 rounded-none;
+    background: rgba(53, 13, 13, 0.47);
+    backdrop-filter: blur(12.8px);
+    -webkit-backdrop-filter: blur(12.8px);
+}
+
+@media (min-width: 640px) {
+  .header {
+    @apply w-[85%] mx-auto my-5 rounded-2xl;
+  }
+}
+
+/* Mobile-first box holder */
+.boxholder{
+    @apply grid grid-cols-2 gap-4 my-8 mx-auto w-full px-4;
+}
+
+@media (min-width: 480px) {
+  .boxholder {
+    @apply grid-cols-2 gap-6;
+  }
+}
+
+@media (min-width: 640px) {
+  .boxholder {
+    @apply grid-cols-3 gap-8 my-16 px-6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .boxholder {
+    @apply gap-x-36 gap-y-16 px-10;
+  }
+}
+
+/* Mobile-first box styling */
+.box{
+    @apply h-32 flex items-center justify-center p-4 rounded-2xl shadow-md backdrop-blur-sm border border-white/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 text-center;
+    background: rgba(53, 13, 13, 0.47);
+    backdrop-filter: blur(12.8px);
+    -webkit-backdrop-filter: blur(12.8px);
+}
+
+@media (min-width: 480px) {
+  .box {
+    @apply h-36 p-6;
+  }
+}
+
+@media (min-width: 640px) {
+  .box {
+    @apply h-44 p-6;
+  }
+}
+
+.nav{
+    @apply hover:backdrop-blur-md transition-all p-2 rounded-lg;
+}
+
+.lequied{
+    @apply backdrop-blur-md bg-neutral-400/30 border-b border-white/40 shadow-lg rounded-2xl;
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 shadow-lg;
+    display: none;
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+  }
+}
+
+.bottom-nav-item {
+    @apply flex-1 flex flex-col items-center justify-center py-3 px-2 text-gray-600 hover:text-blue-600 transition-colors;
+}
+
+.bottom-nav-item.active {
+    @apply text-blue-600;
+}
+
+.bottom-nav-icon {
+    @apply w-6 h-6 mb-1;
+}
+
+.bottom-nav-label {
+    @apply text-xs font-medium;
+}
+
+/* Mobile-first page layouts */
+.page-container {
+    @apply min-h-screen pt-20 pb-20 px-4;
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    @apply pt-24 pb-6 px-6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    @apply pt-28 pb-8 px-8;
+  }
+}
+
+/* Mobile-first cards */
+.card {
+    @apply  backdrop-blur-sm rounded-xl shadow-md border border-white/30 p-4;
+}
+
+@media (min-width: 640px) {
+  .card {
+    @apply p-6;
+  }
+}
+
+/* Mobile-first buttons */
+.btn-mobile {
+    @apply w-full py-3 px-4 rounded-lg font-medium transition-all;
+}
+
+@media (min-width: 640px) {
+  .btn-mobile {
+    @apply w-auto py-2 px-6;
+  }
+}
+
+/* Mobile-first forms */
+.form-mobile {
+    @apply w-full space-y-4;
+}
+
+.form-input-mobile {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+/* Mobile-first grid layouts */
+.grid-mobile {
+    @apply grid grid-cols-1 gap-4;
+}
+
+@media (min-width: 480px) {
+  .grid-mobile {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-mobile {
+    @apply grid-cols-3;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-mobile {
+    @apply grid-cols-4;
+  }
+}
+
+/* Mobile-first text sizing */
+.text-mobile {
+    @apply text-sm;
+}
+
+@media (min-width: 480px) {
+  .text-mobile {
+    @apply text-base;
+  }
+}
+
+@media (min-width: 768px) {
+  .text-mobile {
+    @apply text-lg;
+  }
+}
+
+/* Mobile-first spacing */
+.space-mobile {
+    @apply space-y-4;
+}
+
+@media (min-width: 640px) {
+  .space-mobile {
+    @apply space-y-6;
+  }
+}
+
+/* Hide elements on mobile */
+.hide-mobile {
+    @apply hidden;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    @apply block;
+  }
+}
+
+/* Show only on mobile */
+.show-mobile {
+    @apply block;
+}
+
+@media (min-width: 768px) {
+  .show-mobile {
+    @apply hidden;
+  }
+}

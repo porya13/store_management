@@ -2,14 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
+from app.models.user import User
+from app.utils.auth import get_current_user, require_admin
 from app.schemas.carpet import (
     CarpetCreate, CarpetUpdate, CarpetResponse, CarpetListResponse,
     CarpetOperationCreate, CarpetOperationUpdate, CarpetOperationResponse
 )
 from app.services.carpet_service import CarpetService
-from app.services.pdf_service import PDFService
 from app.models.carpet import CarpetSize
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 import os
 
 router = APIRouter(prefix="/carpets", tags=["Carpets"])
@@ -129,25 +130,46 @@ def export_carpets_pdf(
     db: Session = Depends(get_db)
 ):
     """خروجی PDF فرش‌های فیلتر شده"""
-    carpet_service = CarpetService(db)
-    pdf_service = PDFService()
-    
-    carpets = carpet_service.list_carpets(
-        skip=0,
-        limit=10000,
-        size=size,
-        material=material,
-        search=search,
-        available_only=available_only
-    )
-    
-    pdf_path = pdf_service.generate_carpets_pdf(carpets)
-    
-    if not os.path.exists(pdf_path):
-        raise HTTPException(status_code=500, detail="خطا در ایجاد PDF")
-    
-    return FileResponse(
-        pdf_path,
-        media_type="application/pdf",
-        filename="carpets_export.pdf"
-    )
+    # بررسی اینکه reportlab نصب هست یا نه
+    try:
+        from app.services.pdf_service import PDFService, REPORTLAB_AVAILABLE
+        
+        if not REPORTLAB_AVAILABLE:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "error": "PDF generation not available",
+                    "message": "reportlab is not installed. Install it with: pip install reportlab"
+                }
+            )
+        
+        carpet_service = CarpetService(db)
+        pdf_service = PDFService()
+        
+        carpets = carpet_service.list_carpets(
+            skip=0,
+            limit=10000,
+            size=size,
+            material=material,
+            search=search,
+            available_only=available_only
+        )
+        
+        pdf_path = pdf_service.generate_carpets_pdf(carpets)
+        
+        if not os.path.exists(pdf_path):
+            raise HTTPException(status_code=500, detail="خطا در ایجاد PDF")
+        
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename="carpets_export.pdf"
+        )
+    except ImportError as e:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "PDF generation not available",
+                "message": str(e)
+            }
+        )

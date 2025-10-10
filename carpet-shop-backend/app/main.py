@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import carpets, invoices, checks, reports
+from app.api import carpets, invoices, checks, reports, auth
 from app.database import Base, engine
 import os
 
@@ -12,7 +12,7 @@ os.makedirs("uploads", exist_ok=True)
 
 app = FastAPI(
     title="Carpet Shop Management System",
-    description="سامانه مدیریت انبار و فروشگاه فرش",
+    description="سامانه مدیریت انبار و فروشگاه فرش با احراز هویت",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -28,6 +28,7 @@ app.add_middleware(
 )
 
 # Include Routers
+app.include_router(auth.router, prefix="/api")  # Auth routes
 app.include_router(carpets.router, prefix="/api")
 app.include_router(invoices.router, prefix="/api")
 app.include_router(checks.router, prefix="/api")

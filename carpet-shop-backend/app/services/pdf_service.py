@@ -1,24 +1,35 @@
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+"""
+PDF Service - با پشتیبانی از حالت بدون reportlab
+"""
+
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
+
 from typing import List
-import os
 import tempfile
 from datetime import datetime
 
+
 class PDFService:
     def __init__(self):
-        # برای پشتیبانی از فارسی، باید فونت فارسی را اضافه کنید
-        # این فقط یک مثال است - باید فایل فونت را دانلود کنید
-        # pdfmetrics.registerFont(TTFont('Persian', 'path/to/font.ttf'))
-        pass
+        if not REPORTLAB_AVAILABLE:
+            print("⚠️  PDFService: reportlab is not available")
     
     def generate_carpets_pdf(self, carpets: List) -> str:
         """ایجاد PDF از لیست فرش‌ها"""
+        
+        if not REPORTLAB_AVAILABLE:
+            raise ImportError(
+                "reportlab is not installed. "
+                "Please install it with: pip install reportlab"
+            )
         
         # ایجاد فایل موقت
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
@@ -41,7 +52,10 @@ class PDFService:
         )
         
         # عنوان
-        title = Paragraph(f"Carpet Inventory Report - {datetime.now().strftime('%Y-%m-%d')}", title_style)
+        title = Paragraph(
+            f"Carpet Inventory Report - {datetime.now().strftime('%Y-%m-%d')}", 
+            title_style
+        )
         elements.append(title)
         elements.append(Spacer(1, 0.5*cm))
         
