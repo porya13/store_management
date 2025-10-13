@@ -10,7 +10,10 @@ class CheckService:
     
     def create_check(self, check_data: CheckCreate) -> Check:
         """ایجاد چک جدید"""
-        check = Check(**check_data.model_dump())
+        check = Check(
+            **check_data.model_dump(),
+            status=CheckStatus.NOT_REGISTERED  # default status
+        )
         self.db.add(check)
         self.db.commit()
         self.db.refresh(check)

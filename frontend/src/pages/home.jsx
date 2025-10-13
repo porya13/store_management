@@ -2,175 +2,300 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../api/api';
-import { Loader2, TrendingUp, CheckCircle2, CreditCard, FileText, Users } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Loader2, TrendingUp, CheckCircle2, CreditCard, FileText, Package, DollarSign } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from 'recharts';
 
 export default function Home() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [stats, setStats] = useState({
     totalCarpets: 0,
     availableCarpets: 0,
+    totalValue: 0,
     invoicesCount: 0,
     checksCount: 0,
-    usersCount: 0,
+    totalRevenue: 0,
   });
   const [recentCarpets, setRecentCarpets] = useState([]);
   const [recentInvoices, setRecentInvoices] = useState([]);
-  const [chartData, setChartData] = useState([]);
+  const [upcomingChecks, setUpcomingChecks] = useState([]);
+  const [inventoryData, setInventoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [carpets, available, invoices, checks, users] = await Promise.all([
-          api.get('/carpets/?skip=0&limit=1000&available_only=false'),
-          api.get('/carpets?available_only=true'),
-          api.get('/invoices'),
-          api.get('/checks?limit=0'),
-          api.get('/users?limit=0'),
-        ]);
+    fetchData();
+  }, []);
 
-        setStats({
-          totalCarpets: carpets.data.length,
-          availableCarpets: available.data.length,
-          invoicesCount: invoices.data.length,
-          checksCount: checks.data.length,
-          usersCount: users.data.length,
-        });
+  const fetchData = async () => {
+    try {
+      setLoading(true);
 
-        // فرش‌های اخیر
-        const sortedCarpets = carpets.data
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-          .slice(0, 5);
-        setRecentCarpets(sortedCarpets);
+      const [carpetsRes, invoicesRes, checksRes, inventoryRes] = await Promise.all([
+        api.get('/carpets?limit=1000'),
+        api.get('/invoices?limit=100'),
+        api.get('/checks/upcoming?days=7'),
+        api.get('/reports/inventory'),
+      ]);
 
-        // فاکتورهای اخیر
-        const sortedInvoices = invoices.data
-          .sort((a, b) => new Date(b.date) - new Date(a.date))
-          .slice(0, 5);
-        setRecentInvoices(sortedInvoices);
+      const allCarpets = carpetsRes.data;
+      const availableCarpets = allCarpets.filter(c => c.quantity > 0);
+      const totalValue = allCarpets.reduce((sum, c) => sum + (c.total_cost * c.quantity), 0);
 
-        // نمودار فروش (نمونه ساختگی)
-        const mockChartData = [
-          { name: 'فروردین', sales: 12 },
-          { name: 'اردیبهشت', sales: 18 },
-          { name: 'خرداد', sales: 25 },
-          { name: 'تیر', sales: 20 },
-          { name: 'مرداد', sales: 30 },
-          { name: 'شهریور', sales: 22 },
-        ];
-        setChartData(mockChartData);
+      const allInvoices = invoicesRes.data;
+      const totalRevenue = allInvoices.reduce((sum, inv) => sum + inv.total_amount, 0);
 
-        setError(null);
-      } catch (err) {
-        console.error(err);
-        setError('خطا در بارگذاری اطلاعات');
-      } finally {
-        setLoading(false);
+      setStats({
+        totalCarpets: allCarpets.length,
+        availableCarpets: availableCarpets.length,
+        totalValue: totalValue,
+        invoicesCount: allInvoices.length,
+        checksCount: checksRes.data.length,
+        totalRevenue: totalRevenue,
+      });
+
+      setRecentCarpets(allCarpets.slice(0, 5));
+      setRecentInvoices(allInvoices.slice(0, 5));
+      setUpcomingChecks(checksRes.data.slice(0, 5));
+
+      if (inventoryRes.data.by_size) {
+        const chartData = inventoryRes.data.by_size.map(item => ({
+          name: item.size,
+          count: item.count
+        }));
+        setInventoryData(chartData);
       }
-    };
 
-    if (user) fetchData();
-  }, [user]);
+      setError(null);
+    } catch (err) {
+      console.error('خطا در دریافت داده‌ها:', err);
+      setError(err.response?.data?.detail || 'خطا در بارگذاری اطلاعات');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center text-blue-600">
-        <Loader2 className="w-10 h-10 animate-spin" />
+      <div className="min-h-screen flex justify-center items-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
+          <p className="mt-4 text-gray-600">در حال بارگذاری...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="containerr mt-[100px] flex flex-col p-6" dir="rtl">
-      {/* Header */}
-     
+    <div className="mt-[100px] p-6" dir="rtl">
+      <div className="max-w-7xl mx-auto">
+        
 
-      {/* Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
-        <StatCard icon={<TrendingUp />} title="کل فرش‌ها" value={stats.totalCarpets} color="text-blue-600" />
-        <StatCard icon={<CheckCircle2 />} title="فرش‌های موجود" value={stats.availableCarpets} color="text-green-600" />
-        <StatCard icon={<FileText />} title="تعداد فاکتورها" value={stats.invoicesCount} color="text-purple-600" />
-        <StatCard icon={<CreditCard />} title="تعداد چک‌ها" value={stats.checksCount} color="text-orange-600" />
-        <StatCard icon={<Users />} title="کاربران سیستم" value={stats.usersCount} color="text-pink-600" />
-      </div>
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
 
-      {/* Chart Section */}
-      <div className="bg-white/40 backdrop-blur-xl p-6 rounded-2xl shadow-md mb-10">
-        <h2 className="text-xl font-semibold mb-4">نمودار فروش ماهیانه</h2>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2} dot={{ r: 5 }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <StatCard
+            icon={<Package className="w-6 h-6" />}
+            title="کل فرش‌ها"
+            value={stats.totalCarpets}
+            subtitle={`${stats.availableCarpets} موجود`}
+            color="bg-blue-500"
+            onClick={() => navigate('/carpets')}
+          />
+          <StatCard
+            icon={<DollarSign className="w-6 h-6" />}
+            title="ارزش موجودی"
+            value={`${(stats.totalValue / 1000000).toFixed(1)}M`}
+            subtitle="میلیون تومان"
+            color="bg-green-500"
+          />
+          <StatCard
+            icon={<FileText className="w-6 h-6" />}
+            title="فاکتورها"
+            value={stats.invoicesCount}
+            subtitle={`${(stats.totalRevenue / 1000000).toFixed(1)}M فروش`}
+            color="bg-purple-500"
+            onClick={() => navigate('/invoices')}
+          />
+          <StatCard
+            icon={<CreditCard className="w-6 h-6" />}
+            title="چک‌های نزدیک"
+            value={stats.checksCount}
+            subtitle="تا 7 روز آینده"
+            color="bg-orange-500"
+            onClick={() => navigate('/checks')}
+          />
+          <StatCard
+            icon={<TrendingUp className="w-6 h-6" />}
+            title="درآمد کل"
+            value={`${(stats.totalRevenue / 1000000).toFixed(1)}M`}
+            subtitle="میلیون تومان"
+            color="bg-pink-500"
+          />
+          <StatCard
+            icon={<CheckCircle2 className="w-6 h-6" />}
+            title="نرخ موجودی"
+            value={`${stats.totalCarpets > 0 ? ((stats.availableCarpets / stats.totalCarpets) * 100).toFixed(0) : 0}%`}
+            subtitle="فرش‌های موجود"
+            color="bg-indigo-500"
+          />
+        </div>
 
-      {/* Recent Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white/40 backdrop-blur-xl p-6 rounded-2xl shadow-md">
-          <h2 className="text-xl font-semibold mb-4">آخرین فرش‌های اضافه‌شده</h2>
-          <ul className="space-y-3">
-            {recentCarpets.map((carpet) => (
-              <li
-                key={carpet.id}
-                className="flex justify-between items-center p-3 bg-white/70 rounded-lg shadow-sm hover:bg-white/90 transition"
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">توزیع موجودی بر اساس اندازه</h2>
+            {inventoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={inventoryData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-500 text-center py-8">داده‌ای برای نمایش وجود ندارد</p>
+            )}
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">چک‌های نزدیک به سررسید</h2>
+              <button
+                onClick={() => navigate('/checks')}
+                className="text-sm text-blue-600 hover:text-blue-700"
               >
-                <span>{carpet.name || 'بدون نام'}</span>
-                <span className="text-sm text-gray-600">
-                  {new Date(carpet.created_at).toLocaleDateString('fa-IR')}
-                </span>
-              </li>
-            ))}
-          </ul>
+                مشاهده همه
+              </button>
+            </div>
+            {upcomingChecks.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingChecks.map((check) => (
+                  <div
+                    key={check.id}
+                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                  >
+                    <div>
+                      <p className="font-medium">{check.check_number}</p>
+                      <p className="text-sm text-gray-600">{check.payee}</p>
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-orange-600">
+                        {check.amount.toLocaleString()} تومان
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {new Date(check.check_date).toLocaleDateString('fa-IR')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">چک نزدیک به سررسیدی وجود ندارد</p>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white/40 backdrop-blur-xl p-6 rounded-2xl shadow-md">
-          <h2 className="text-xl font-semibold mb-4">آخرین فاکتورها</h2>
-          <ul className="space-y-3">
-            {recentInvoices.map((invoice) => (
-              <li
-                key={invoice.id}
-                className="flex justify-between items-center p-3 bg-white/70 rounded-lg shadow-sm hover:bg-white/90 transition"
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">آخرین فرش‌های اضافه شده</h2>
+              <button
+                onClick={() => navigate('/carpets')}
+                className="text-sm text-blue-600 hover:text-blue-700"
               >
-                <span>فاکتور #{invoice.id}</span>
-                <span className="text-sm text-gray-600">
-                  {new Date(invoice.date).toLocaleDateString('fa-IR')}
-                </span>
-              </li>
-            ))}
-          </ul>
+                مشاهده همه
+              </button>
+            </div>
+            {recentCarpets.length > 0 ? (
+              <div className="space-y-3">
+                {recentCarpets.map((carpet) => (
+                  <div
+                    key={carpet.id}
+                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+                    onClick={() => navigate(`/carpets/${carpet.id}`)}
+                  >
+                    <div>
+                      <p className="font-medium">{carpet.pattern}</p>
+                      <p className="text-sm text-gray-600">{carpet.brand} - {carpet.size}</p>
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-green-600">
+                        {carpet.quantity} عدد
+                      </p>
+                      <p className="text-sm text-gray-600">{carpet.material}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">فرشی اضافه نشده است</p>
+            )}
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">آخرین فاکتورها</h2>
+              <button
+                onClick={() => navigate('/invoices')}
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                مشاهده همه
+              </button>
+            </div>
+            {recentInvoices.length > 0 ? (
+              <div className="space-y-3">
+                {recentInvoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+                    onClick={() => navigate(`/invoices/${invoice.id}`)}
+                  >
+                    <div>
+                      <p className="font-medium">{invoice.invoice_number}</p>
+                      <p className="text-sm text-gray-600">{invoice.customer_name}</p>
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-green-600">
+                        {invoice.total_amount.toLocaleString()} تومان
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {new Date(invoice.invoice_date).toLocaleDateString('fa-IR')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">فاکتوری صادر نشده است</p>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Error */}
-      {error && (
-        <div className="mt-6 bg-red-50 border border-red-300 text-red-600 px-4 py-3 rounded-lg text-center">
-          {error}
-        </div>
-      )}
     </div>
   );
 }
 
-function StatCard({ icon, title, value, color }) {
+function StatCard({ icon, title, value, subtitle, color, onClick }) {
   return (
-    <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 flex flex-col items-center shadow-md hover:scale-[1.02] transition">
-      <div className={`${color} mb-2`}>{icon}</div>
-      <h3 className="text-gray-700 text-sm">{title}</h3>
-      <p className={`text-3xl font-bold ${color}`}>{value}</p>
+    <div
+      className={`bg-white rounded-lg shadow p-6 hover:shadow-lg transition ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className={`${color} text-white p-3 rounded-lg`}>
+          {icon}
+        </div>
+      </div>
+      <h3 className="text-gray-600 text-sm mb-1">{title}</h3>
+      <p className="text-3xl font-bold text-gray-800 mb-1">{value}</p>
+      <p className="text-sm text-gray-500">{subtitle}</p>
     </div>
   );
 }

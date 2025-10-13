@@ -9,15 +9,21 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.12.2",
     "dayjs": "^1.11.18",
+    "file-saver": "^2.0.5",
+    "html2pdf.js": "^0.12.1",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.545.0",
     "react": "^19.2.0",
+    "react-advance-jalaali-datepicker": "^1.6.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.64.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1",
     "recharts": "^3.2.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start && npm run tailwind",

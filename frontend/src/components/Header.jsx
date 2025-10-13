@@ -61,6 +61,9 @@ export default function Header() {
             <Link to='/invoices' className='nav'>فاکتورها</Link>
             <Link to='/checks' className='nav'>چک‌ها</Link>
             <Link to='/reports' className='nav'>گزارشات</Link>
+            <Link to='/profile' className='nav'>پروفایل</Link>
+
+
           </ul>
           
           {/* Mobile Title */}

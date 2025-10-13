@@ -12,6 +12,9 @@ import Checks from './pages/Checks'
 import Reports from './pages/Reports'
 import Register from './pages/Register'
 import CarpetForm from './components/carpetform'
+import InvoiceForm from './pages/InvoiceForm'
+import InvoiceDetail from './pages/InvoiceDetail'
+import ProfileSettings from './pages/ProfileSettings'
 function App() {
   return (
     <div>
@@ -30,6 +33,9 @@ function App() {
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/checks" element={<Checks />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path='/InvoiceForm' element={<InvoiceForm/>}/>
+              <Route path="/invoices/:id" element={<InvoiceDetail />} />
+              <Route path="profile" element={<ProfileSettings />}/>
             </Route>
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>

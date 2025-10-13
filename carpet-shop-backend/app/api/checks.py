@@ -17,7 +17,6 @@ def create_check(
     """ایجاد چک جدید"""
     service = CheckService(db)
     return service.create_check(check)
-
 @router.get("/", response_model=List[CheckResponse])
 def list_checks(
     skip: int = Query(0, ge=0),

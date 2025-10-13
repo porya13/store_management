@@ -12,7 +12,7 @@ class CheckBase(BaseModel):
     description: Optional[str] = None
 
 class CheckCreate(CheckBase):
-    status: CheckStatus = CheckStatus.NOT_REGISTERED
+   # status: CheckStatus = CheckStatus.NOT_REGISTERED
     invoice_id: Optional[int] = None
     carpet_id: Optional[int] = None
 

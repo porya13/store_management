@@ -162,7 +162,7 @@ export default function CarpetsList() {
 
           {/* Advanced Filters */}
           {showFilters && (
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="lequied p-4 rounded-lg border border-gray-200">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">اندازه</label>
