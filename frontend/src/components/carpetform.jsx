@@ -189,7 +189,7 @@ export default function CarpetForm() {
                     name="quantity"
                     value={formData.quantity}
                     onChange={handleChange}
-                    min="0"
+                    
                     required
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
@@ -222,7 +222,6 @@ export default function CarpetForm() {
                     name="purchase_price"
                     value={formData.purchase_price}
                     onChange={handleChange}
-                    min="0"
                     required
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
@@ -235,7 +234,7 @@ export default function CarpetForm() {
                     name="sale_price"
                     value={formData.sale_price}
                     onChange={handleChange}
-                    min="0"
+                    
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -289,7 +288,7 @@ export default function CarpetForm() {
                         name="owner_declared_price"
                         value={formData.owner_declared_price}
                         onChange={handleChange}
-                        min="0"
+                        
                         required={formData.is_consignment}
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                       />

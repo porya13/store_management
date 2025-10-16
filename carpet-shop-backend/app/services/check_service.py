@@ -51,14 +51,17 @@ class CheckService:
     
     def get_upcoming_checks(self, days: int = 7) -> List[Check]:
         """دریافت چک‌های نزدیک به سررسید"""
-        today = datetime.now()
+        from datetime import datetime, timedelta
+        
+        today = datetime.now().date()
         target_date = today + timedelta(days=days)
         
-        return self.db.query(Check).filter(
+        checks = self.db.query(Check).filter(
             Check.check_date >= today,
-            Check.check_date <= target_date,
-            Check.status.in_([CheckStatus.REGISTERED, CheckStatus.CONFIRMED])
+            Check.check_date <= target_date
         ).order_by(Check.check_date).all()
+        
+        return checks
     
     def update_check(self, check_id: int, check_update: CheckUpdate) -> Optional[Check]:
         """ویرایش چک"""

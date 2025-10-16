@@ -67,27 +67,83 @@ def update_carpet(
         raise HTTPException(status_code=404, detail="فرش یافت نشد")
     return carpet
 
+
 @router.delete("/{carpet_id}", status_code=204)
-def delete_carpet(carpet_id: int, db: Session = Depends(get_db)):
-    """حذف فرش"""
+def delete_carpet(
+    carpet_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """حذف نرم فرش (فقط ادمین)"""
     service = CarpetService(db)
     success = service.delete_carpet(carpet_id)
     if not success:
         raise HTTPException(status_code=404, detail="فرش یافت نشد")
     return None
 
+
+# Endpoint جدید برای بازگردانی
+@router.post("/{carpet_id}/restore", response_model=CarpetResponse)
+def restore_carpet(
+    carpet_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """بازگردانی فرش حذف شده (فقط ادمین)"""
+    service = CarpetService(db)
+    success = service.restore_carpet(carpet_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="فرش حذف شده یافت نشد")
+    
+    carpet = service.get_carpet(carpet_id)
+    return carpet
+
+
 @router.post("/{carpet_id}/image")
-def upload_carpet_image(
+async def upload_carpet_image(
     carpet_id: int,
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)  # فقط ادمین
 ):
     """آپلود عکس فرش"""
+    
+    # بررسی نوع فایل
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(
+            status_code=400,
+            detail="فقط فایل‌های تصویری مجاز هستند"
+        )
+    
+    # بررسی حجم فایل (مثلاً حداکثر 5MB)
+    file.file.seek(0, 2)  # رفتن به انتهای فایل
+    file_size = file.file.tell()  # گرفتن حجم
+    file.file.seek(0)  # برگشت به ابتدا
+    
+    max_size = 5 * 1024 * 1024  # 5MB
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"حجم فایل نباید بیشتر از {max_size // (1024*1024)}MB باشد"
+        )
+    
     service = CarpetService(db)
-    image_path = service.upload_image(carpet_id, file)
-    if not image_path:
-        raise HTTPException(status_code=404, detail="فرش یافت نشد")
-    return {"image_path": image_path}
+    try:
+        image_path = service.upload_image(carpet_id, file)
+        if not image_path:
+            raise HTTPException(status_code=404, detail="فرش یافت نشد")
+        
+        return {
+            "success": True,
+            "image_path": image_path,
+            "message": "عکس با موفقیت آپلود شد"
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail="خطا در آپلود عکس")
+
 
 @router.post("/{carpet_id}/operations", response_model=CarpetOperationResponse, status_code=201)
 def add_operation(

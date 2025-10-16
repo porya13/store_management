@@ -15,6 +15,8 @@ import CarpetForm from './components/carpetform'
 import InvoiceForm from './pages/InvoiceForm'
 import InvoiceDetail from './pages/InvoiceDetail'
 import ProfileSettings from './pages/ProfileSettings'
+import Profile from './pages/profile'
+import UserManagement from './pages/usermanagement'
 function App() {
   return (
     <div>
@@ -35,7 +37,9 @@ function App() {
               <Route path="/reports" element={<Reports />} />
               <Route path='/InvoiceForm' element={<InvoiceForm/>}/>
               <Route path="/invoices/:id" element={<InvoiceDetail />} />
-              <Route path="profile" element={<ProfileSettings />}/>
+            
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/users" element={<UserManagement />} />
             </Route>
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>

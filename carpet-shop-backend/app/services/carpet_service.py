@@ -1,3 +1,4 @@
+
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from typing import List, Optional
@@ -24,8 +25,11 @@ class CarpetService:
         return carpet
     
     def get_carpet(self, carpet_id: int) -> Optional[Carpet]:
-        """دریافت یک فرش با ID"""
-        return self.db.query(Carpet).filter(Carpet.id == carpet_id).first()
+        """دریافت یک فرش با ID (فقط فرش‌های حذف نشده)"""
+        return self.db.query(Carpet).filter(
+            Carpet.id == carpet_id,
+            Carpet.is_deleted == False
+        ).first()
     
     def list_carpets(
         self,
@@ -34,10 +38,15 @@ class CarpetService:
         size: Optional[CarpetSize] = None,
         material: Optional[str] = None,
         search: Optional[str] = None,
-        available_only: bool = False
+        available_only: bool = False,
+        include_deleted: bool = False  # پارامتر جدید
     ) -> List[Carpet]:
-        """لیست فرش‌ها با فیلتر"""
+        """لیست فرش‌ها با فیلتر (فقط فرش‌های حذف نشده)"""
         query = self.db.query(Carpet)
+        
+        # فیلتر حذف نشده‌ها
+        if not include_deleted:
+            query = query.filter(Carpet.is_deleted == False)
         
         if size:
             query = query.filter(Carpet.size == size)
@@ -75,8 +84,37 @@ class CarpetService:
         return carpet
     
     def delete_carpet(self, carpet_id: int) -> bool:
-        """حذف فرش"""
+        """حذف نرم (Soft Delete) فرش"""
         carpet = self.get_carpet(carpet_id)
+        if not carpet:
+            return False
+        
+        # به جای حذف واقعی، فقط علامت‌گذاری می‌کنیم
+        carpet.is_deleted = True
+        carpet.deleted_at = datetime.utcnow()
+        
+        self.db.commit()
+        return True
+    
+    def restore_carpet(self, carpet_id: int) -> bool:
+        """بازگردانی فرش حذف شده"""
+        carpet = self.db.query(Carpet).filter(
+            Carpet.id == carpet_id,
+            Carpet.is_deleted == True
+        ).first()
+        
+        if not carpet:
+            return False
+        
+        carpet.is_deleted = False
+        carpet.deleted_at = None
+        
+        self.db.commit()
+        return True
+    
+    def permanent_delete_carpet(self, carpet_id: int) -> bool:
+        """حذف واقعی و دائمی فرش (فقط برای ادمین)"""
+        carpet = self.db.query(Carpet).filter(Carpet.id == carpet_id).first()
         if not carpet:
             return False
         
@@ -90,20 +128,16 @@ class CarpetService:
         if not carpet:
             return None
         
-        # ایجاد پوشه uploads اگر وجود ندارد
         os.makedirs(settings.upload_dir, exist_ok=True)
         
-        # ایجاد نام یونیک برای فایل
         file_extension = os.path.splitext(file.filename)[1]
         unique_filename = f"{uuid.uuid4()}{file_extension}"
         file_path = os.path.join(settings.upload_dir, unique_filename)
         
-        # ذخیره فایل
         with open(file_path, "wb") as buffer:
             content = file.file.read()
             buffer.write(content)
         
-        # حذف عکس قبلی اگر وجود دارد
         if carpet.image_path and os.path.exists(carpet.image_path):
             os.remove(carpet.image_path)
         
@@ -126,7 +160,6 @@ class CarpetService:
         )
         self.db.add(operation)
         
-        # آپدیت تاریخ ویرایش فرش
         carpet.last_edited_at = datetime.utcnow()
         
         self.db.commit()
@@ -146,10 +179,8 @@ class CarpetService:
         for field, value in update_data.items():
             setattr(operation, field, value)
         
-        # آپدیت تاریخ ویرایش
         operation.updated_at = datetime.utcnow()
         
-        # آپدیت تاریخ ویرایش فرش
         carpet = self.get_carpet(operation.carpet_id)
         if carpet:
             carpet.last_edited_at = datetime.utcnow()
@@ -167,7 +198,6 @@ class CarpetService:
         if not operation:
             return False
         
-        # آپدیت تاریخ ویرایش فرش
         carpet = self.get_carpet(operation.carpet_id)
         if carpet:
             carpet.last_edited_at = datetime.utcnow()

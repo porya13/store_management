@@ -54,6 +54,8 @@ export default function Home() {
         checksCount: checksRes.data.length,
         totalRevenue: totalRevenue,
       });
+      console.log(checksRes);
+      
 
       setRecentCarpets(allCarpets.slice(0, 5));
       setRecentInvoices(allInvoices.slice(0, 5));
@@ -181,10 +183,14 @@ export default function Home() {
                     key={check.id}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
                   >
-                    <div>
+                  <div className='flex gap-4'>
+                  <div>
                       <p className="font-medium">{check.check_number}</p>
                       <p className="text-sm text-gray-600">{check.payee}</p>
                     </div>
+                    <div className={`py-0.5 px-1.5 flex items-center ${check.check_type=="خروجی"?"bg-red-400":"bg-green-500" }  text-[10px] font-bold text-white rounded-full `}>{check.check_type}</div>
+
+                  </div>
                     <div className="text-left">
                       <p className="font-bold text-orange-600">
                         {check.amount.toLocaleString()} تومان

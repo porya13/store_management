@@ -3,7 +3,7 @@ import { ArrowRight, Download, Printer, Trash2, Package, Calendar, User, CreditC
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
@@ -64,21 +64,21 @@ export default function InvoiceDetail() {
     if (!invoice) return;
 
     try {
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      let yPos = 20;
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a5" });
+      let yPos = 10;
 
-      doc.setFontSize(16);
-      doc.text("Invoice / Faktor", 105, yPos, { align: "center" });
+      doc.setFontSize(14);
+      doc.text("Invoice / Faktor", 74, yPos, { align: "center" });
       yPos += 10;
 
-      doc.setFontSize(12);
-      doc.text(`Invoice No: ${invoice.invoice_number}`, 20, yPos);
-      doc.text(`Date: ${toJalali(invoice.invoice_date)}`, 150, yPos);
-      yPos += 10;
+      doc.setFontSize(10);
+      doc.text(`Invoice No: ${invoice.invoice_number}`, 10, yPos);
+      doc.text(`Date: ${toJalali(invoice.invoice_date)}`, 100, yPos);
+      yPos += 8;
 
-      doc.text(`Customer: ${invoice.customer_name}`, 20, yPos);
-      doc.text(`Payment: ${invoice.payment_method}`, 150, yPos);
-      yPos += 10;
+      doc.text(`Customer: ${invoice.customer_name}`, 10, yPos);
+      doc.text(`Payment: ${invoice.payment_method}`, 100, yPos);
+      yPos += 8;
 
       const tableData = (invoice.items || []).map((item, idx) => [
         idx + 1,
@@ -90,31 +90,32 @@ export default function InvoiceDetail() {
         (item.total_price || 0).toLocaleString(),
       ]);
 
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos,
         head: [["#", "Title", "Size", "Brand", "Qty", "Price", "Total"]],
         body: tableData,
         theme: "grid",
-        styles: { fontSize: 9, cellPadding: 2 },
+        styles: { fontSize: 7, cellPadding: 1.5 },
         headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0] },
+        margin: { left: 10, right: 10 },
       });
 
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = doc.lastAutoTable.finalY + 8;
 
-      doc.setFontSize(14);
-      doc.text(`Total: ${(invoice.total_amount || 0).toLocaleString()} Toman`, 150, yPos);
+      doc.setFontSize(10);
+      doc.text(`Total: ${(invoice.total_amount || 0).toLocaleString()} Toman`, 90, yPos);
 
       // اضافه کردن اطلاعات چک‌ها
       if (checks.length > 0) {
-        yPos += 15;
-        doc.setFontSize(12);
-        doc.text("Checks:", 20, yPos);
-        yPos += 7;
+        yPos += 10;
         doc.setFontSize(10);
+        doc.text("Checks:", 10, yPos);
+        yPos += 5;
+        doc.setFontSize(8);
         checks.forEach((check, idx) => {
           doc.text(
             `${idx + 1}. No: ${check.check_number} - Amount: ${check.amount.toLocaleString()} - Date: ${toJalali(check.check_date)} - Status: ${getCheckStatusLabel(check.status)}`,
-            25,
+            12,
             yPos
           );
           yPos += 5;

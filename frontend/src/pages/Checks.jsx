@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { CreditCard, Plus, Search, Filter, Edit, Trash2, Calendar, Bell } from "lucide-react";
+import {
+  CreditCard,
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Calendar,
+  Bell,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 
@@ -35,7 +44,7 @@ export default function Checks() {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      
+
       if (filters.checkType) params.append("check_type", filters.checkType);
       if (filters.status) params.append("status", filters.status);
       if (filters.startDate) params.append("start_date", filters.startDate);
@@ -44,7 +53,6 @@ export default function Checks() {
       const response = await api.get(`checks?${params.toString()}`);
       let allChecks = response.data || [];
 
-      // فیلتر جستجو در frontend
       if (filters.search) {
         allChecks = allChecks.filter(
           (check) =>
@@ -65,7 +73,6 @@ export default function Checks() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("آیا از حذف این چک مطمئن هستید؟")) return;
-
     try {
       await api.delete(`checks/${id}`);
       fetchChecks();
@@ -124,18 +131,19 @@ export default function Checks() {
   }
 
   return (
-    <div className="mt-[100px] p-6" dir="rtl">
+    <div className="mt-[100px] p-4 sm:p-6" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="lequied rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+          <div className="flex flex-wrap gap-3 items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">مدیریت چک‌ها</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">مدیریت چک‌ها</h1>
               <p className="text-gray-600 mt-1">{checks.length} چک یافت شد</p>
             </div>
+
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-sm"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition shadow-sm"
             >
               <Plus size={20} />
               افزودن چک
@@ -143,8 +151,8 @@ export default function Checks() {
           </div>
 
           {/* Search and Filter */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex-1 relative">
+          <div className="flex flex-wrap gap-3 mb-4">
+            <div className="flex-1 relative min-w-[200px]">
               <Search className="absolute right-3 top-3 text-gray-400" size={20} />
               <input
                 type="text"
@@ -156,8 +164,10 @@ export default function Checks() {
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition ${
-                showFilters ? "bg-blue-50 border-blue-500 text-blue-600" : "border-gray-300 hover:bg-gray-50"
+              className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition w-full sm:w-auto justify-center ${
+                showFilters
+                  ? "bg-blue-50 border-blue-500 text-blue-600"
+                  : "border-gray-300 hover:bg-gray-50"
               }`}
             >
               <Filter size={20} />
@@ -167,58 +177,58 @@ export default function Checks() {
 
           {/* Advanced Filters */}
           {showFilters && (
-            <div className="lequied p-4 rounded-lg border border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">نوع چک</label>
-                  <select
-                    value={filters.checkType}
-                    onChange={(e) => setFilters({ ...filters, checkType: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="">همه</option>
-                    <option value="ورودی">ورودی</option>
-                    <option value="خروجی">خروجی</option>
-                  </select>
-                </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <FilterSelect
+                  label="نوع چک"
+                  value={filters.checkType}
+                  onChange={(e) =>
+                    setFilters({ ...filters, checkType: e.target.value })
+                  }
+                  options={[
+                    { value: "", label: "همه" },
+                    { value: "ورودی", label: "ورودی" },
+                    { value: "خروجی", label: "خروجی" },
+                  ]}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">وضعیت</label>
-                  <select
-                    value={filters.status}
-                    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="">همه</option>
-                    {checkStatuses.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FilterSelect
+                  label="وضعیت"
+                  value={filters.status}
+                  onChange={(e) =>
+                    setFilters({ ...filters, status: e.target.value })
+                  }
+                  options={[
+                    { value: "", label: "همه" },
+                    ...checkStatuses.map((s) => ({
+                      value: s.value,
+                      label: s.label,
+                    })),
+                  ]}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">از تاریخ</label>
-                  <input
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
+                <FilterInput
+                  label="از تاریخ"
+                  type="date"
+                  value={filters.startDate}
+                  onChange={(e) =>
+                    setFilters({ ...filters, startDate: e.target.value })
+                  }
+                />
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">تا تاریخ</label>
-                  <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
+                <FilterInput
+                  label="تا تاریخ"
+                  type="date"
+                  value={filters.endDate}
+                  onChange={(e) =>
+                    setFilters({ ...filters, endDate: e.target.value })
+                  }
+                />
               </div>
-              <button onClick={clearFilters} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <button
+                onClick={clearFilters}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
                 پاک کردن فیلترها
               </button>
             </div>
@@ -236,7 +246,9 @@ export default function Checks() {
         {checks.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-8 text-center">
             <CreditCard size={64} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">چکی یافت نشد</h3>
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              چکی یافت نشد
+            </h3>
             <p className="text-gray-500 mb-6">
               {filters.search || filters.checkType || filters.status
                 ? "با فیلترهای دیگری جستجو کنید"
@@ -259,84 +271,48 @@ export default function Checks() {
               return (
                 <div
                   key={check.id}
-                  className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-6 border ${
+                  className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-4 sm:p-6 border flex flex-col gap-3 ${
                     isUpcoming ? "border-orange-300 bg-orange-50" : "border-gray-100"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      {/* Header */}
-                      <div className="flex items-center gap-3 mb-3">
-                        <h3 className="text-xl font-bold text-gray-800">
-                          {check.check_number || "بدون شماره"}
-                        </h3>
-
-                        {/* Type Badge */}
-                        <span
-                          className={`text-xs px-3 py-1 rounded-full font-medium ${
-                            check.check_type === "ورودی"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {check.check_type}
+                  {/* Top Section */}
+                  <div className="flex flex-wrap justify-between gap-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-800">
+                        {check.check_number || "بدون شماره"}
+                      </h3>
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full font-medium ${
+                          check.check_type === "ورودی"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {check.check_type}
+                      </span>
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full font-medium ${getStatusColor(
+                          check.status
+                        )}`}
+                      >
+                        {check.status}
+                      </span>
+                      {isUpcoming && (
+                        <span className="flex items-center gap-1 bg-orange-100 text-orange-700 text-xs px-3 py-1 rounded-full font-medium">
+                          <Bell size={14} />
+                          {daysUntilDue === 0
+                            ? "امروز"
+                            : `${daysUntilDue} روز دیگر`}
                         </span>
-
-                        {/* Status Badge */}
-                        <span className={`text-xs px-3 py-1 rounded-full font-medium ${getStatusColor(check.status)}`}>
-                          {check.status}
-                        </span>
-
-                        {/* Upcoming Alert */}
-                        {isUpcoming && (
-                          <span className="flex items-center gap-1 bg-orange-100 text-orange-700 text-xs px-3 py-1 rounded-full font-medium">
-                            <Bell size={14} />
-                            {daysUntilDue === 0 ? "امروز" : `${daysUntilDue} روز دیگر`}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Details */}
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500">در وجه:</span>
-                          <span className="font-medium text-gray-800 mr-2">{check.payee}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Calendar size={16} className="text-gray-400" />
-                          <span className="text-gray-700">{toJalali(check.check_date)}</span>
-                          {daysUntilDue >= 0 && (
-                            <span className="text-xs text-gray-500">({daysUntilDue} روز)</span>
-                          )}
-                        </div>
-
-                        <div>
-                          <span className="text-gray-500">مبلغ:</span>
-                          <span className="font-bold text-green-600 mr-2">
-                            {(check.amount || 0).toLocaleString()} تومان
-                          </span>
-                        </div>
-
-                        {check.invoice_id && (
-                          <div>
-                            <span className="text-gray-500">فاکتور:</span>
-                            <span className="text-blue-600 mr-2">#{check.invoice_id}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {check.description && (
-                        <p className="text-sm text-gray-600 mt-3 bg-gray-50 p-2 rounded">{check.description}</p>
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex flex-col gap-3 mr-6">
-                      {/* Status Dropdown */}
+                    <div className="flex flex-wrap gap-2 justify-end">
                       <select
                         value={check.status}
-                        onChange={(e) => handleStatusChange(check.id, e.target.value)}
+                        onChange={(e) =>
+                          handleStatusChange(check.id, e.target.value)
+                        }
                         className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500"
                       >
                         {checkStatuses.map((status) => (
@@ -345,8 +321,6 @@ export default function Checks() {
                           </option>
                         ))}
                       </select>
-
-                      {/* Edit & Delete */}
                       <div className="flex gap-2">
                         <button
                           onClick={() => setEditingCheck(check)}
@@ -364,6 +338,50 @@ export default function Checks() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Details */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">در وجه:</span>
+                      <span className="font-medium text-gray-800 mr-2">
+                        {check.payee}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} className="text-gray-400" />
+                      <span className="text-gray-700">
+                        {toJalali(check.check_date)}
+                      </span>
+                      {daysUntilDue >= 0 && (
+                        <span className="text-xs text-gray-500">
+                          ({daysUntilDue} روز)
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <span className="text-gray-500">مبلغ:</span>
+                      <span className="font-bold text-green-600 mr-2">
+                        {(check.amount || 0).toLocaleString()} تومان
+                      </span>
+                    </div>
+
+                    {check.invoice_id && (
+                      <div>
+                        <span className="text-gray-500">فاکتور:</span>
+                        <span className="text-blue-600 mr-2">
+                          #{check.invoice_id}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {check.description && (
+                    <p className="text-sm text-gray-600 mt-2 bg-gray-50 p-2 rounded">
+                      {check.description}
+                    </p>
+                  )}
                 </div>
               );
             })}
@@ -371,7 +389,6 @@ export default function Checks() {
         )}
       </div>
 
-      {/* Add/Edit Modal */}
       {(showAddModal || editingCheck) && (
         <CheckModal
           check={editingCheck}
@@ -390,13 +407,46 @@ export default function Checks() {
   );
 }
 
-// Modal Component
+function FilterSelect({ label, value, onChange, options }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-2">{label}</label>
+      <select
+        value={value}
+        onChange={onChange}
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function FilterInput({ label, ...props }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-2">{label}</label>
+      <input
+        {...props}
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+      />
+    </div>
+  );
+}
+
+/* --- Modal --- */
 function CheckModal({ check, onClose, onSave }) {
   const [formData, setFormData] = useState({
     check_number: check?.check_number || "",
     amount: check?.amount || 0,
     payee: check?.payee || "",
-    check_date: check?.check_date ? check.check_date.split("T")[0] : new Date().toISOString().split("T")[0],
+    check_date: check?.check_date
+      ? check.check_date.split("T")[0]
+      : new Date().toISOString().split("T")[0],
     check_type: check?.check_type || "ورودی",
     description: check?.description || "",
     invoice_id: check?.invoice_id || null,
@@ -406,7 +456,6 @@ function CheckModal({ check, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const payload = {
         ...formData,
@@ -414,13 +463,10 @@ function CheckModal({ check, onClose, onSave }) {
         invoice_id: formData.invoice_id || null,
       };
 
-      if (check) {
-        await api.put(`checks/${check.id}`, payload);
-      } else {
-        await api.post("checks/", payload);
-      }
+      if (check) await api.put(`checks/${check.id}`, payload);
+      else await api.post("checks/", payload);
 
-      alert(check ? "چک با موفقیت ویرایش شد" : "چک با موفقیت اضافه شد");
+      alert(check ? "چک بروزرسانی شد" : "چک اضافه شد");
       onSave();
     } catch (err) {
       alert(err.response?.data?.detail || "خطا در ذخیره چک");
@@ -435,75 +481,13 @@ function CheckModal({ check, onClose, onSave }) {
         <h2 className="text-2xl font-bold mb-6">{check ? "ویرایش چک" : "افزودن چک جدید"}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">شماره چک *</label>
-              <input
-                type="text"
-                value={formData.check_number}
-                onChange={(e) => setFormData({ ...formData, check_number: e.target.value })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">مبلغ (تومان) *</label>
-              <input
-                type="number"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                required
-                min="0"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">در وجه *</label>
-              <input
-                type="text"
-                value={formData.payee}
-                onChange={(e) => setFormData({ ...formData, payee: e.target.value })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">تاریخ سررسید *</label>
-              <input
-                type="date"
-                value={formData.check_date}
-                onChange={(e) => setFormData({ ...formData, check_date: e.target.value })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">نوع چک *</label>
-              <select
-                value={formData.check_type}
-                onChange={(e) => setFormData({ ...formData, check_type: e.target.value })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="ورودی">ورودی</option>
-                <option value="خروجی">خروجی</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">شماره فاکتور (اختیاری)</label>
-              <input
-                type="number"
-                value={formData.invoice_id || ""}
-                onChange={(e) => setFormData({ ...formData, invoice_id: e.target.value ? Number(e.target.value) : null })}
-                placeholder="اگر مرتبط با فاکتوری است"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormInput label="شماره چک *" value={formData.check_number} onChange={(e) => setFormData({ ...formData, check_number: e.target.value })} required />
+            <FormInput label="مبلغ (تومان) *" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required />
+            <FormInput label="در وجه *" value={formData.payee} onChange={(e) => setFormData({ ...formData, payee: e.target.value })} required />
+            <FormInput label="تاریخ سررسید *" type="date" value={formData.check_date} onChange={(e) => setFormData({ ...formData, check_date: e.target.value })} required />
+            <FormSelect label="نوع چک *" value={formData.check_type} onChange={(e) => setFormData({ ...formData, check_type: e.target.value })} options={["ورودی", "خروجی"]} />
+            <FormInput label="شماره فاکتور (اختیاری)" type="number" value={formData.invoice_id || ""} onChange={(e) => setFormData({ ...formData, invoice_id: e.target.value ? Number(e.target.value) : null })} />
           </div>
 
           <div>
@@ -516,24 +500,46 @@ function CheckModal({ check, onClose, onSave }) {
             />
           </div>
 
-          <div className="flex gap-3 justify-end pt-4 border-t">
+          <div className="flex flex-wrap gap-3 justify-end pt-4 border-t">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              className="w-full sm:w-auto px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
               انصراف
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
+              className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
             >
               {loading ? "در حال ذخیره..." : check ? "بروزرسانی" : "افزودن"}
             </button>
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function FormInput({ label, ...props }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-2">{label}</label>
+      <input {...props} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+    </div>
+  );
+}
+
+function FormSelect({ label, value, onChange, options }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-2">{label}</label>
+      <select value={value} onChange={onChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
     </div>
   );
 }

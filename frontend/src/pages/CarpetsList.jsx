@@ -245,7 +245,7 @@ export default function CarpetsList() {
 
         {/* Empty State */}
         {carpets.length === 0 && !loading && (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+          <div className="lequied rounded-lg shadow-sm p-12 text-center">
             <Package size={64} className="mx-auto text-gray-400 mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">فرشی یافت نشد</h3>
             <p className="text-gray-500 mb-6">

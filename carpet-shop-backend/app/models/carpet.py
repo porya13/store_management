@@ -1,3 +1,4 @@
+
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -48,6 +49,10 @@ class Carpet(Base):
     has_pair = Column(Boolean, default=False, comment="آیا جفت دارد")
     payment_method = Column(SQLEnum(PaymentMethod), nullable=False, comment="نحوه پرداخت")
     
+    # Soft Delete - اضافه شده
+    is_deleted = Column(Boolean, default=False, comment="حذف شده؟")
+    deleted_at = Column(DateTime, nullable=True, comment="تاریخ حذف")
+    
     # تاریخچه ویرایش
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -82,4 +87,4 @@ class CarpetOperation(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    carpet = relationship("Carpet", back_populates="operations")
+    carpet = relationship("Carpet", back_populates="operations")    
